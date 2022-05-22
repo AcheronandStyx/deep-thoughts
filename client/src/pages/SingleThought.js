@@ -1,13 +1,15 @@
-import React from "react";
-import { useParams } from "react-router-dom";
-import { useQuery } from "@apollo/client";
-import { QUERY_THOUGHT } from "../utils/queries";
-import ReactionList from "../components/ReactionList";
+import React from 'react';
+import { useParams } from 'react-router-dom';
+
+import ReactionList from '../components/ReactionList';
+import ReactionForm from '../components/ReactionForm/index.js';
+
+import Auth from '../utils/auth';
+import { useQuery } from '@apollo/client';
+import { QUERY_THOUGHT } from '../utils/queries';
 
 const SingleThought = (props) => {
   const { id: thoughtId } = useParams(); // Pull the id from the url
-  console.log(thoughtId);
-
   // variables loading and data are destructured from the useQuery Hook. The loading variable is then used
   // to briefly show a loading <div> element, and the data variable is used to populate a thought object.
   const { loading, data } = useQuery(QUERY_THOUGHT, {
@@ -26,7 +28,7 @@ const SingleThought = (props) => {
         <p className="card-header">
           <span style={{ fontWeight: 700 }} className="text-light">
             {thought.username}
-          </span>{" "}
+          </span>{' '}
           thought on {thought.createdAt}
         </p>
         <div className="card-body">
@@ -37,10 +39,11 @@ const SingleThought = (props) => {
       {thought.reactionCount > 0 && (
         <ReactionList reactions={thought.reactions} />
       )}
+
+      {Auth.loggedIn() && <ReactionForm thoughtId={thought._id} />}
     </div>
   );
-
-  // Above the reactions array is passed as a prop to the ReactionsList Component
+    // Above the reactions array is passed as a prop to the ReactionsList Component
   // Conditional check to prevent rendering the reactions list if that array is empty
 };
 

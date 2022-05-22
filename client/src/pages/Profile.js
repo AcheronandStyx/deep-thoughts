@@ -1,29 +1,34 @@
 import React from "react";
 import { Navigate, useParams } from "react-router-dom";
 
+import ThoughtForm from "../components/ThoughtForm";
 import ThoughtList from "../components/ThoughtList";
-
-import { useQuery } from "@apollo/client";
-import { QUERY_USER, QUERY_ME } from "../utils/queries";
-
 import FriendList from "../components/FriendList";
-import Auth from "../utils/auth";
 
+import { useQuery, useMutation } from "@apollo/client";
+import { QUERY_USER, QUERY_ME } from "../utils/queries";
+import { ADD_FRIEND } from "../utils/mutations";
+import Auth from "../utils/auth";
 const Profile = () => {
+  // we need to destructure the mutation function from ADD_FRIEND so we can use it in a click function
+
   const { username: userParam } = useParams();
+  const [addFriend] = useMutation(ADD_FRIEND);
   console.log(userParam);
   //  if there's a value in userParam that we got from the URL bar, we'll use that value to run the QUERY_USER query.
   const { loading, data } = useQuery(userParam ? QUERY_USER : QUERY_ME, {
     variables: { username: userParam },
   });
+
   const user = data?.me || data?.user || {};
-  if (loading) {
-    return <div>Loading...</div>;
+
+  // navigate to personal profile page if username is yours
+  if (Auth.loggedIn() && Auth.getProfile().data.username === userParam) {
+    return <Navigate to="/profile:username" />;
   }
 
-  // navigate to personal profile page if username is the logged-in user's
-  if (Auth.loggedIn() && Auth.getProfile().data.username === userParam) {
-    return <Navigate to="/profile" />;
+  if (loading) {
+    return <div>Loading...</div>;
   }
 
   // f there is no user data to display, we know that we aren't logged in or at another user's profile page.
@@ -35,6 +40,16 @@ const Profile = () => {
       </h4>
     );
   }
+  // callback function for the onClikc attr
+  const handleClick = async () => {
+    try {
+      await addFriend({
+        variables: { id: user._id },
+      });
+    } catch (e) {
+      console.error(e);
+    }
+  };
 
   // The useParams Hook retrieves the username from the URL, which is then passed to the useQuery Hook.
   // The user object that is created afterwards is used to populate the JSX.
@@ -45,6 +60,12 @@ const Profile = () => {
         <h2 className="bg-dark text-secondary p-3 display-inline-block">
           Viewing {userParam ? `${user.username}'s` : "your"} profile.
         </h2>
+
+        {userParam && (
+          <button className="btn ml-auto" onClick={handleClick}>
+            Add Friend
+          </button>
+        )}
       </div>
 
       <div className="flex-row justify-space-between mb-3">
@@ -63,6 +84,7 @@ const Profile = () => {
           />
         </div>
       </div>
+      <div className="mb-3">{!userParam && <ThoughtForm />}</div>
     </div>
   );
 };
