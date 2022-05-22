@@ -58,3 +58,49 @@ export const QUERY_USER = gql`
     }
   }
 `;
+
+// Because we aren't passing any variables to it, we can simply name the query, and GraphQL will handle the rest.
+// Pulls Everything for their profile
+export const QUERY_ME = gql`
+  {
+    me {
+      _id
+      username
+      email
+      friendCount
+      thoughts {
+        _id
+        thoughtText
+        createdAt
+        reactionCount
+        reactions {
+          _id
+          createdAt
+          reactionBody
+          username
+        }
+      }
+      friends {
+        _id
+        username
+      }
+    }
+  }
+`;
+
+// pulls less for the homepage
+//  With GraphQL, we can reuse the same query we created and simply ask for less.
+export const QUERY_ME_BASIC = gql`
+  {
+    me {
+      _id
+      username
+      email
+      friendCount
+      friends {
+        _id
+        username
+      }
+    }
+  }
+`;
